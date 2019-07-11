@@ -6,8 +6,6 @@ from pyVmomi import vim
 from vcenter_utils import utils
 import re
 
-# Logging config
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
@@ -16,24 +14,6 @@ class VM(object):
     def __init__(self, vm_object):
         self.vm = vm_object
         logger.debug('Init with VM : ' + str(self.vm))
-
-    def validate_json(self, vm_object):
-        #do validation and provide feedback if incorrect objects found
-        print(vm_object)
-        for vm in vm_object.vms:
-            print(vm['name'])
-            'name' in vm
-            if 'name' in vm:
-                response = 'vm name key present : '
-                if 'vm_uuid' in vm:
-                    response += 'vm_uuid key present'
-                else:
-                    response += 'vm_uuid key not present'
-            else:
-                response = 'vm name key not present'
-                break
-        
-        return response
     
     def clone_template(self, si, template_uuid, template_moref, vm_name, datacenter, folder, cluster, resource_pool=None, datastore=None, dsc=None):
         """

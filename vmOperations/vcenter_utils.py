@@ -6,7 +6,9 @@ import atexit
 import getpass
 import sys
 import ssl
+import logging
 
+logger = logging.getLogger(__name__)
 
 class utils():
     def si_instance(self, host, username, password, port):

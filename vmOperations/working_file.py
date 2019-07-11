@@ -4,7 +4,10 @@ from vcenter_utils import utils
 import json
 import ast
 from collections import namedtuple
+import logging
 
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 def GetArgs():
    """
@@ -22,7 +25,7 @@ def GetArgs():
 args = GetArgs()
 print(args.port)
 template_moref = 'vm-53938'
-args.jsoninput = '{"vms": [{"name": "test3", "vm_uuid": "502b5bde-18a3-538d-8112-7afc44827d39", "description": "This is VM1", "ip_allocation_mode": "pool", "needs_customization": "false", "memory": "2048"}, {"name": "VM2", "vm_uuid": "93b82b05-aa18-43ef-ab9e-f0a622beb8e8", "description": "This is VM2", "ip_allocation_mode": "pool", "needs_customization": "false", "memory": "1024"}]}'
+args.jsoninput = '{"vms": [{"name": "test3", "template_uuid": "502b5bde-18a3-538d-8112-7afc44827d39", "description": "This is VM1", "ip_allocation_mode": "pool", "needs_customization": "false", "memory": "2048"}, {"name": "VM2", "template_uuid": "93b82b05-aa18-43ef-ab9e-f0a622beb8e8", "description": "This is VM2", "ip_allocation_mode": "pool", "needs_customization": "false", "memory": "1024"}]}'
 cfg = json.loads(args.jsoninput)
 vm_object = namedtuple('ConfigObject', cfg.keys())(**cfg)
 vmbuild = VirtualMachine.VM(vm_object)
