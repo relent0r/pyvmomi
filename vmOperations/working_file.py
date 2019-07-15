@@ -40,21 +40,27 @@ print(jsonvalidate)
 obj_utils = utils()
 si = obj_utils.si_instance(args.host, args.user, args.password, args.port)
 
+def build_vms(vm_json):
+   '''
+   Function for triggered the creation of VM's based on json input
+   '''
+   for vm in vm_json['vms']:
+       vm_name = vm['name'] 
+       template_uuid = vm['template_uuid']
+       template_moref = vm['template_moref']
+       datacenter = vm['datacenter']
+       cpu_sockets = vm['cpu_sockets']
+       memory_mb = vm['memory_mb']
+       datastore_cluster = vm['datastore_cluster']
+       for nic in vm['nics']:
+           adaptor_number = nic['adaptor_number']
+           ip_address = nic['ip_address']
+           adaptor_type = nic['adaptor_type']
+   print('build complete')
+
 if validate_json(vm_json) == 'success':
    print('Json is validated ok')
-   def build_vms(vm_json)
-       for vm in vm_json['vms']:
-           vm_name = vm['name'] 
-           template_uuid = vm['template_uuid']
-           template_moref = vm['template_moref']
-           datacenter = vm['datacenter']
-           cpu_sockets = vm['cpu_sockets']
-           memory_mb = vm['memory_mb']
-           datastore_cluster = vm['datastore_cluster']
-           for nic in vm['nics']
-               adaptor_number = nic['adaptor_number']
-               ip_address = nic['ip_address']
-               adaptor_type = adaptor_type['adaptor_type']
+   build_vms(vm_json)
 
 
 
