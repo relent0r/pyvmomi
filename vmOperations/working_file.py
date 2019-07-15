@@ -49,13 +49,20 @@ def build_vms(vm_json):
        template_uuid = vm['template_uuid']
        template_moref = vm['template_moref']
        datacenter = vm['datacenter']
+       dest_folder = vm['dest_folder']
+       dest_cluster = vm['dest_cluster']
        cpu_sockets = vm['cpu_sockets']
        memory_mb = vm['memory_mb']
        datastore_cluster = vm['datastore_cluster']
-       for nic in vm['nics']:
-           adaptor_number = nic['adaptor_number']
-           ip_address = nic['ip_address']
-           adaptor_type = nic['adaptor_type']
+       nics = vm['nics']
+       vmbuild = VirtualMachine.VM(vm_json)
+       task = vmbuild.clone_template(si, template_uuid, template_moref, vm_name, datacenter, dest_folder, dest_cluster, dsc=datastore_cluster)
+       obj_utils = utils()
+       task_resource = obj_utils.wait_for_task(task)
+       if task.info.state == 'success':
+           logger.debug('VM ' + vm_name + ' built')
+       else:
+          logger.warning('Task result is : ' + task.info.state)
    print('build complete')
 
 if validate_json(vm_json) == 'success':
@@ -106,7 +113,6 @@ network = 'dvportgroup-16817'
 #datastore = obj_utils.get_obj_moref(si, 'Datastore', 'datastore-43227')
 #print('Datastore ID is ' + str(datastore._moId))
 #template = obj_utils.get_vm_obj(si, template_uuid, template_moref)
-#vmbuild.clone_template(si, template_uuid, template_moref, vm_name, datacenter, vm_folder, cluster, dsc=dsc)
 #task = vmbuild.set_vm_network(si, vm, 1, network)
 #configdict = {
 #   'testkey1': 'testvalue1',
