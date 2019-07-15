@@ -1,6 +1,7 @@
 import argparse
 import VirtualMachine
 from vcenter_utils import utils
+from generic_utils import validate_json
 import json
 import ast
 from collections import namedtuple
@@ -25,21 +26,39 @@ def GetArgs():
 args = GetArgs()
 print(args.port)
 template_moref = 'vm-53938'
-args.jsoninput = '{"vms": [{"name": "test3", "template_uuid": "502b5bde-18a3-538d-8112-7afc44827d39", "description": "This is VM1", "ip_allocation_mode": "pool", "needs_customization": "false", "memory": "2048"}, {"name": "VM2", "template_uuid": "93b82b05-aa18-43ef-ab9e-f0a622beb8e8", "description": "This is VM2", "ip_allocation_mode": "pool", "needs_customization": "false", "memory": "1024"}]}'
-cfg = json.loads(args.jsoninput)
-vm_object = namedtuple('ConfigObject', cfg.keys())(**cfg)
-vmbuild = VirtualMachine.VM(vm_object)
-jsonvalidate = vmbuild.validate_json(vm_object)
+#args.jsoninput = '{"vms": [{"name": "test3", "template_uuid": "502b5bde-18a3-538d-8112-7afc44827d39", "description": "This is VM1", "ip_allocation_mode": "pool", "needs_customization": "false", "memory": "2048"}, {"name": "VM2", "template_uuid": "93b82b05-aa18-43ef-ab9e-f0a622beb8e8", "description": "This is VM2", "ip_allocation_mode": "pool", "needs_customization": "false", "memory": "1024"}]}'
+with open(args.jsoninput) as cfg:
+    vm_json = json.load(cfg)
+    # vm_object = namedtuple('ConfigObject', cfg.keys())(**cfg)
+    cfg.close()
+    print(cfg)
+
+#cfg = json.loads(args.jsoninput)
+#vmbuild = VirtualMachine.VM(vm_object)
+jsonvalidate = validate_json(vm_json)
 print(jsonvalidate)
 obj_utils = utils()
 si = obj_utils.si_instance(args.host, args.user, args.password, args.port)
 
-for vm in vm_object.vms:
-   if vm['name'] == 'test3':
-      template_uuid = vm['vm_uuid']
-      vm_name = vm['name']
+if validate_json(vm_json) == 'success':
+   print('Json is validated ok')
+   def build_vms(vm_json)
+       for vm in vm_json['vms']:
+           vm_name = vm['name'] 
+           template_uuid = vm['template_uuid']
+           template_moref = vm['template_moref']
+           datacenter = vm['datacenter']
+           cpu_sockets = vm['cpu_sockets']
+           memory_mb = vm['memory_mb']
+           datastore_cluster = vm['datastore_cluster']
+           for nic in vm['nics']
+               adaptor_number = nic['adaptor_number']
+               ip_address = nic['ip_address']
+               adaptor_type = adaptor_type['adaptor_type']
 
-vm = obj_utils.get_vm_obj(si, template_uuid, template_moref)
+
+
+#vm = obj_utils.get_vm_obj(si, template_uuid, template_moref)
 memory = 2048
 cpu = 4
 reserv = 80
@@ -82,7 +101,7 @@ network = 'dvportgroup-16817'
 #print('Datastore ID is ' + str(datastore._moId))
 #template = obj_utils.get_vm_obj(si, template_uuid, template_moref)
 #vmbuild.clone_template(si, template_uuid, template_moref, vm_name, datacenter, vm_folder, cluster, dsc=dsc)
-task = vmbuild.set_vm_network(si, vm, 1, network)
+#task = vmbuild.set_vm_network(si, vm, 1, network)
 #configdict = {
 #   'testkey1': 'testvalue1',
 #   'testkey2': 'testvalue2'

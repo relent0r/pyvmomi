@@ -2,16 +2,17 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def validate_json(self, vm_object):
+def validate_json(vm_object):
         #do validation and provide feedback if incorrect objects found
         print(vm_object)
-        for vm in vm_object.vms:
+        for vm in vm_object['vms']:
             print(vm['name'])
             'name' in vm
             if 'name' in vm:
                 logger.debug('vm name key present : ')               
             else:
                 logger.warning('vm name key not present')
+                response = 'vm name key not present'
                 exit()
             if 'template_uuid' in vm:
                     logger.debug('template_uuid key present')
@@ -38,5 +39,5 @@ def validate_json(self, vm_object):
             else:
                 logger.warning('template_moref key not present')
                 exit()
-
+        response = "success"
         return response
