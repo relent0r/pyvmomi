@@ -53,16 +53,38 @@ def build_vms(vm_json):
        dest_cluster = vm['dest_cluster']
        cpu_sockets = vm['cpu_sockets']
        memory_mb = vm['memory_mb']
+       memory_reservation = vm['reservation']
        datastore_cluster = vm['datastore_cluster']
        nics = vm['nics']
        vmbuild = VirtualMachine.VM(vm_json)
-       task = vmbuild.clone_template(si, template_uuid, template_moref, vm_name, datacenter, dest_folder, dest_cluster, dsc=datastore_cluster)
+       build_task = vmbuild.clone_template(si, template_uuid, template_moref, vm_name, datacenter, dest_folder, dest_cluster, dsc=datastore_cluster)
        obj_utils = utils()
-       task_resource = obj_utils.wait_for_task(task)
-       if task.info.state == 'success':
+       # Wait for task to finish and validate success or exit of build failed
+       build_task_resource = obj_utils.wait_for_task(build_task)
+       if build_task.info.state == 'success':
            logger.debug('VM ' + vm_name + ' built')
        else:
-          logger.warning('Task result is : ' + task.info.state)
+          logger.warning('Task result is : ' + build_task.info.state)
+          logger.warning('VM Clone failed')
+          exit()
+       # Perform CPU flex and wait for task completion
+       cpu_task = vmbuild.flex_vm_cpu(si, build_task_resource, cpu_sockets)
+       cpu_task_resource = obj_utils.wait_for_task(cpu_task)
+       if build_task.info.state == 'success':
+           logger.debug('CPU Flex on ' + vm_name + ' complete')
+       else:
+          logger.warning('Task result is : ' + cpu_task.info.state)
+          logger.warning('VM Clone failed')
+       
+       memory_task = vmbuild.flex_vm_memory(si, build_task_resource, memory_mb, reserv=memory_reservation)
+       memory_task_resource = obj_utils.wait_for_task(memory_task)
+       if build_task.info.state == 'success':
+           logger.debug('Memory Flex on ' + vm_name + ' complete')
+       else:
+          logger.warning('Task result is : ' + memory_task.info.state)
+          logger.warning('VM Clone failed')
+
+      
    print('build complete')
 
 if validate_json(vm_json) == 'success':

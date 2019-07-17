@@ -97,19 +97,21 @@ class VM(object):
     def flex_vm_memory(self, si, vm, mb, reserv=None):
         #flex vm memory
         #check if hotadd is enabled
-        logger.debug('HotAdd set to : ' + vm.config.memoryHotAddEnabled)
-        if vm.config.memoryHotAddEnabled == True:
+        mb = int(mb)
+        logger.debug('HotAdd set to : ' + str(vm.config.memoryHotAddEnabled))
+        #create the config spec
+        config_spec = vim.vm.ConfigSpec()
+        if vm.config.memoryHotAddEnabled == True or vm.runtime.powerState == 'poweredOff':
             if reserv != None:
-                reservraw = mb / 100 * reserv
+                reservraw = mb / 100 * int(reserv)
                 reserv = int(reservraw)
-                logger.debug('Reservation percentage requested : ' + reserv + 'Actual reservation to be set is : ' + reservraw)
+                logger.debug('Reservation percentage requested : ' + str(reserv) + 'Actual reservation to be set is : ' + str(reservraw))
                 resource_allocation_spec = vim.ResourceAllocationInfo()
                 resource_allocation_spec.limit = mb
                 resource_allocation_spec.reservation = reserv
-            #create the config spec
-            config_spec = vim.vm.ConfigSpec()
+                config_spec.memoryAllocation = resource_allocation_spec
+            #Set memory
             config_spec.memoryMB = mb
-            config_spec.memoryAllocation = resource_allocation_spec
             try:
                 response = vm.ReconfigVM_Task(config_spec)
             except:
@@ -126,7 +128,10 @@ class VM(object):
     def flex_vm_cpu(self, si, vm, cpu, core=None, mhz=None, reserv=None):
         #flex vm memory
         # add check if hotadd is enabled
-        if vm.config.cpuHotAddEnabled == True:
+        cpu = int(cpu)
+        if core != None:
+          core = int(core)
+        if vm.config.cpuHotAddEnabled == True or vm.runtime.powerState == 'poweredOff':
             resource_allocation_spec = vim.ResourceAllocationInfo()
             if reserv != None and mhz != None:
                 reservraw = mhz / 100 * reserv
