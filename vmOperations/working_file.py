@@ -25,16 +25,13 @@ def GetArgs():
    return args
 args = GetArgs()
 print(args.port)
-template_moref = 'vm-53938'
-#args.jsoninput = '{"vms": [{"name": "test3", "template_uuid": "502b5bde-18a3-538d-8112-7afc44827d39", "description": "This is VM1", "ip_allocation_mode": "pool", "needs_customization": "false", "memory": "2048"}, {"name": "VM2", "template_uuid": "93b82b05-aa18-43ef-ab9e-f0a622beb8e8", "description": "This is VM2", "ip_allocation_mode": "pool", "needs_customization": "false", "memory": "1024"}]}'
+
 with open(args.jsoninput) as cfg:
     vm_json = json.load(cfg)
-    # vm_object = namedtuple('ConfigObject', cfg.keys())(**cfg)
     cfg.close()
     print(cfg)
 
-#cfg = json.loads(args.jsoninput)
-#vmbuild = VirtualMachine.VM(vm_object)
+
 jsonvalidate = validate_json(vm_json)
 print(jsonvalidate)
 obj_utils = utils()
@@ -83,65 +80,25 @@ def build_vms(vm_json):
        else:
           logger.warning('Task result is : ' + memory_task.info.state)
           logger.warning('VM Clone failed')
-
+       for nic in nics:
+          logger.debug('Set Network Adaptor :' + nic['adaptor_number'])
+          nic_id = nic['adaptor_number']
+          network_moref = nic['network']
+          nic_task = vmbuild.set_vm_network(si, build_task_resource, nic_id, network_moref)
+          nic_task_resource = obj_utils.wait_for_task(nic_task)
+          if nic_task.info.state == 'success':
+            logger.debug('Network adaptor change on ' + vm_name + ' complete')
+          else:
+            logger.warning('Task result is : ' + nic_task.info.state)
+            logger.warning('Network Adaptor Set Failed')
       
    print('build complete')
 
 if validate_json(vm_json) == 'success':
-   print('Json is validated ok')
+   logger.debug('Json is validated successfully')
    build_vms(vm_json)
 
 
 
-#vm = obj_utils.get_vm_obj(si, template_uuid, template_moref)
-memory = 2048
-cpu = 4
-reserv = 80
-mhz = 2000
-cores = 1
-bus = 1
-scsi_sharing = 'noSharing'
-datacenter = 'datacenter-561'
-vm_folder = 'group-v42447'
-dsc = 'group-p40141'
-cluster = 'domain-c38746'
-#network = 'network-24564'
-network = 'dvportgroup-16817'
-#try:
-#    reconfig = vmbuild.flex_vm_memory(si, vm_object, memory, reserv)
-#    if reconfig == False:
-#        print('Memory Upgrade Failed')
-#    else:
-#        print(reconfig.moid)
-#except Exception as e:
-#   print('Exception')
 
-#try:
-#    reconfig = vmbuild.flex_vm_cpu(si, vm_object, cpu, core=cores, mhz=mhz, reserv=reserv)
-#except Exception as e:
-#   print('Exception :', e)
-
-#try:
-#    disk_add = vmbuild.add_vm_disk(si, vm_object, 6, 'thick')
-#except Exception as e:
-#   print('Exception :', e)
-#try:
-#    controller_add = vmbuild.add_vm_controller(si, vm_object, bus=bus, sharing=scsi_sharing)
-#except Exception as e:
-#   print('Exception :', e)
-
-       
-#print(template_uuid)
-#datastore = obj_utils.get_obj_moref(si, 'Datastore', 'datastore-43227')
-#print('Datastore ID is ' + str(datastore._moId))
-#template = obj_utils.get_vm_obj(si, template_uuid, template_moref)
-#task = vmbuild.set_vm_network(si, vm, 1, network)
-#configdict = {
-#   'testkey1': 'testvalue1',
-#   'testkey2': 'testvalue2'
-#}
-#vmbuild.set_vm_extraconfig(si, vm, configdict)
-#diskid = '6000C292-3659-9abc-94f8-d7305e30d8c9'
-#vmbuild.extend_vm_disk(si, vm, diskid, 20)
-print('done')
-#vmbuild.create_vms(si, vm_object)
+logger.debug('Build Finished')

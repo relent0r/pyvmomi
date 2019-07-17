@@ -352,44 +352,43 @@ class VM(object):
             if isinstance(dev, vim.vm.device.VirtualEthernetCard):
                 #use the dict to get the correct card 
                 for key, value in nic_map.items():
-                    if isinstance(dev, vim.vm.device.VirtualEthernetCard):
-                        if key == nic_id:
-                            logger.debug('Network adaptor is : ' + value)
-                            virtual_nic_device = dev
-                            virtual_nic_spec = vim.vm.device.VirtualDeviceSpec()
-                            virtual_nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.edit
-                            virtual_nic_spec.device = virtual_nic_device
-                            if network._wsdlName == 'DistributedVirtualPortgroup':
+                    if key == int(nic_id):
+                        logger.debug('Network adaptor is : ' + value)
+                        virtual_nic_device = dev
+                        virtual_nic_spec = vim.vm.device.VirtualDeviceSpec()
+                        virtual_nic_spec.operation = vim.vm.device.VirtualDeviceSpec.Operation.edit
+                        virtual_nic_spec.device = virtual_nic_device
+                        if network._wsdlName == 'DistributedVirtualPortgroup':
+                            logger.debug('Setting data objects for : ' + network._wsdlName)
+                            virtual_nic_spec.device.backing = vim.vm.device.VirtualEthernetCard.DistributedVirtualPortBackingInfo()
+                            virtual_nic_spec.device.backing.port = vim.dvs.PortConnection()
+                            virtual_nic_spec.device.backing.port.portgroupKey = network_moref
+                            virtual_nic_spec.device.backing.port.switchUuid = dvs.uuid
+                        elif network._wsdlName == 'Network':
+                            if isinstance(network, vim.OpaqueNetwork):
+                                logger.debug('Setting data objects for Opaque network: ' + network._wsdlName)
+                                virtual_nic_spec.device.backing = vim.vm.device.VirtualEthernetCard.OpaqueNetworkBackingInfo()
+                                virtual_nic_spec.device.backing.opaqueNetworkType = network.summary.opaqueNetworkType
+                                virtual_nic_spec.device.backing.opaqueNetworkId = network.summary.opaqueNetworkId
+                            else:
                                 logger.debug('Setting data objects for : ' + network._wsdlName)
-                                virtual_nic_spec.device.backing = vim.vm.device.VirtualEthernetCard.DistributedVirtualPortBackingInfo()
-                                virtual_nic_spec.device.backing.port = vim.dvs.PortConnection()
-                                virtual_nic_spec.device.backing.port.portgroupKey = network_moref
-                                virtual_nic_spec.device.backing.port.switchUuid = dvs.uuid
-                            elif network._wsdlName == 'Network':
-                                if isinstance(network, vim.OpaqueNetwork):
-                                    logger.debug('Setting data objects for Opaque network: ' + network._wsdlName)
-                                    virtual_nic_spec.device.backing = vim.vm.device.VirtualEthernetCard.OpaqueNetworkBackingInfo()
-                                    virtual_nic_spec.device.backing.opaqueNetworkType = network.summary.opaqueNetworkType
-                                    virtual_nic_spec.device.backing.opaqueNetworkId = network.summary.opaqueNetworkId
-                                else:
-                                    logger.debug('Setting data objects for : ' + network._wsdlName)
-                                    virtual_nic_spec.device.backing = vim.vm.device.VirtualEthernetCard.NetworkBackingInfo()
-                                    virtual_nic_spec.device.backing.useAutoDetect = False
-                                    virtual_nic_spec.device.backing.deviceName = network.name
-                            #build spec data objects
-                            spec = vim.vm.ConfigSpec()
-                            spec.deviceChange = [virtual_nic_spec]
-                            try:
-                                #attempt to reconfigure VM with spec and get task object back
-                                logger.info('Performing VM Reconfiguration task for setting network')
-                                resource = vm.ReconfigVM_Task(spec=spec)
-                                break
-                            except:
-                                logger.exception('Exception performing VM reconfigure task')
-                                exit()
-                        else:
-                            logger.debug('no matching nic id found for value : ' + value)
-                            pass
+                                virtual_nic_spec.device.backing = vim.vm.device.VirtualEthernetCard.NetworkBackingInfo()
+                                virtual_nic_spec.device.backing.useAutoDetect = False
+                                virtual_nic_spec.device.backing.deviceName = network.name
+                        #build spec data objects
+                        spec = vim.vm.ConfigSpec()
+                        spec.deviceChange = [virtual_nic_spec]
+                        try:
+                            #attempt to reconfigure VM with spec and get task object back
+                            logger.info('Performing VM Reconfiguration task for setting network')
+                            resource = vm.ReconfigVM_Task(spec=spec)
+                            break
+                        except:
+                            logger.exception('Exception performing VM reconfigure task')
+                            exit()
+                    else:
+                        logger.debug('no matching nic id found for value : ' + value)
+                        pass
         return resource
 
     def set_vm_extraconfig(self, si, vm, config_dict):
