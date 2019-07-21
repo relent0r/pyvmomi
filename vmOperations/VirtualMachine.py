@@ -417,3 +417,42 @@ class VM(object):
             logger.exception('VM Reconfiguration failed')
             exit()
         return resource
+    def set_vm_power(self, si, vm, state):
+        """
+        Change power state of VM
+        """
+        logger.debug('Check current power state')
+        current_state = vm.runtime.powerState
+        
+        if state == 'poweredon':
+            if current_state == 'poweredOn':
+                logger.warning('VM is already powered on')
+                exit()
+            try:
+                task_resource = vm.PowerOnVM_Task()
+            except:
+                logger.exception('Power State Change failed')
+                exit()
+        if state == 'poweredoff':
+            if current_state == 'poweredOff':
+                logger.warning('VM is already powered off')
+                exit()
+            try:
+                task_resource = vm.PowerOffVM_Task()
+            except:
+                logger.exception('Power State Change failed')
+                exit()
+        if state == 'reset':
+            if current_state == 'poweredOff':
+                logger.warning('VM is powered off, unable to reset')
+                exit()
+            try:
+                task_resource = vm.ResetVM_Task()
+            except:
+                logger.exception('Power State Change failed')
+                exit()
+
+        return task_resource
+            
+
+

@@ -67,19 +67,21 @@ def build_vms(vm_json):
        # Perform CPU flex and wait for task completion
        cpu_task = vmbuild.flex_vm_cpu(si, build_task_resource, cpu_sockets)
        cpu_task_resource = obj_utils.wait_for_task(cpu_task)
+       logger.debug('cpu task complete for vm : ' + vm_name)
        if build_task.info.state == 'success':
            logger.debug('CPU Flex on ' + vm_name + ' complete')
        else:
           logger.warning('Task result is : ' + cpu_task.info.state)
-          logger.warning('VM Clone failed')
+          logger.warning('CPU flex failed')
        
        memory_task = vmbuild.flex_vm_memory(si, build_task_resource, memory_mb, reserv=memory_reservation)
        memory_task_resource = obj_utils.wait_for_task(memory_task)
+       logger.debug('memory task complete for vm : ' + vm_name)
        if build_task.info.state == 'success':
            logger.debug('Memory Flex on ' + vm_name + ' complete')
        else:
           logger.warning('Task result is : ' + memory_task.info.state)
-          logger.warning('VM Clone failed')
+          logger.warning('Memory flex failed')
        for nic in nics:
           logger.debug('Set Network Adaptor :' + nic['adaptor_number'])
           nic_id = nic['adaptor_number']
@@ -91,7 +93,9 @@ def build_vms(vm_json):
           else:
             logger.warning('Task result is : ' + nic_task.info.state)
             logger.warning('Network Adaptor Set Failed')
-      
+       power_task = vmbuild.set_vm_power(si, build_task_resource, vm['state'])
+       power_task_resource = obj_utils.wait_for_task(power_task)
+       logger.debug('power task complete for vm : ' + vm_name)
    print('build complete')
 
 if validate_json(vm_json) == 'success':
